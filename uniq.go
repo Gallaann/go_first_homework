@@ -66,6 +66,13 @@ func skipFields(line string, numFields int) string {
 	return ""
 }
 
+func skipChars(line string, numChars int) string {
+	if len(line) > numChars {
+		return line[numChars:]
+	}
+	return ""
+}
+
 func main() {
 	flags := parseFlags()
 	inputFile, outputFile := parseArguments()
