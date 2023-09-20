@@ -62,19 +62,36 @@ func checkFlags(flags flags) (bool, error) {
 	return true, nil
 }
 
-func skipFields(line string, numFields int) string {
-	fields := strings.Fields(line)
-	if len(fields) > numFields {
-		return strings.Join(fields[numFields:], " ")
+func skipFields(line string, fields int) string {
+	fielders := strings.Fields(line)
+	if len(fielders) > fields {
+		return strings.Join(fielders[fields:], " ")
 	}
 	return ""
 }
 
-func skipChars(line string, numChars int) string {
-	if len(line) > numChars {
-		return line[numChars:]
+func skipChars(line string, chars int) string {
+	if len(line) > chars {
+		return line[chars:]
 	}
 	return ""
+}
+
+func equal(lineOne, lineTwo string, flags flags) (result bool) {
+	result = true
+	if flags.ignoreCase {
+		lineOne = strings.ToLower(lineOne)
+		lineTwo = strings.ToLower(lineTwo)
+	}
+	if flags.fields > 0 {
+		lineOne = skipFields(lineOne, flags.fields)
+		lineTwo = skipFields(lineTwo, flags.fields)
+	}
+	if flags.chars > 0 {
+		lineOne = skipChars(lineOne, flags.chars)
+		lineTwo = skipChars(lineTwo, flags.chars)
+	}
+	return lineOne == lineTwo
 }
 
 func main() {
