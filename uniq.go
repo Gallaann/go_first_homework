@@ -25,9 +25,26 @@ func parseFlags() flags {
 	flag.Parse()
 	return flags
 }
+func checkFlags(flags flags) bool {
+	sum := 0
+	if flags.count {
+		sum++
+	}
+	if flags.duplicates {
+		sum++
+	}
+	if flags.unique {
+		sum++
+	}
+	if sum != 1 {
+		return false
+	}
+
+	return true
+}
 
 func main() {
 	flags := parseFlags()
 
-	fmt.Println(flags)
+	fmt.Println(checkFlags(flags))
 }
