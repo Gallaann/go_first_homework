@@ -94,6 +94,18 @@ func equal(lineOne, lineTwo string, flags flags) (result bool) {
 	return lineOne == lineTwo
 }
 
+func print(line string, flags flags, count int, output io.Writer) {
+	if flags.count {
+		fmt.Fprintln(output, count, line)
+	} else if flags.duplicates && count > 1 {
+		fmt.Fprintln(output, line)
+	} else if flags.unique && count == 1 {
+		fmt.Fprintln(output, line)
+	} else if !flags.unique && !flags.duplicates {
+		fmt.Fprintln(output, line)
+	}
+}
+
 func main() {
 	flags := parseFlags()
 
@@ -129,8 +141,6 @@ func main() {
 	scanner := bufio.NewScanner(input)
 
 	// TODO realisation of uniq
-
-	// TODO output data
 
 	for scanner.Scan() {
 		fmt.Fprintln(output, scanner.Text())
