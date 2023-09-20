@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"strings"
 )
 
 type flags struct {
@@ -57,9 +58,17 @@ func checkFlags(flags flags) bool {
 	return true
 }
 
+func skipFields(line string, numFields int) string {
+	fields := strings.Fields(line)
+	if len(fields) > numFields {
+		return strings.Join(fields[numFields:], " ")
+	}
+	return ""
+}
+
 func main() {
 	flags := parseFlags()
 	inputFile, outputFile := parseArguments()
 
-	fmt.Println(checkFlags(flags))
+	fmt.Println(flags, inputFile, outputFile)
 }
