@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-type flags struct {
+type parameters struct {
 	count      bool
 	duplicates bool
 	unique     bool
@@ -19,8 +19,8 @@ type flags struct {
 	chars      int
 }
 
-func parseFlags() flags {
-	var flags flags
+func parseFlags() parameters {
+	var flags parameters
 	flag.BoolVar(&flags.count, "c", false, "count repeated lines")
 	flag.BoolVar(&flags.duplicates, "d", false, "output only duplicate lines")
 	flag.BoolVar(&flags.unique, "u", false, "output only unique lines")
@@ -44,7 +44,7 @@ func parseArguments() (string, string) {
 	}
 }
 
-func checkFlags(flags flags) (bool, error) {
+func checkFlags(flags parameters) (bool, error) {
 	sum := 0
 	if flags.count {
 		sum++
@@ -77,7 +77,7 @@ func skipChars(line string, chars int) string {
 	return ""
 }
 
-func equal(lineOne, lineTwo string, flags flags) bool {
+func equal(lineOne, lineTwo string, flags parameters) bool {
 	if flags.ignoreCase {
 		return strings.EqualFold(skipChars(skipFields(lineOne, flags.fields), flags.chars), skipChars(skipFields(lineTwo, flags.fields), flags.chars))
 	}
@@ -85,7 +85,7 @@ func equal(lineOne, lineTwo string, flags flags) bool {
 	return skipChars(skipFields(lineOne, flags.fields), flags.chars) == skipChars(skipFields(lineTwo, flags.fields), flags.chars)
 }
 
-func print(line string, flags flags, count int, output io.Writer) {
+func print(line string, flags parameters, count int, output io.Writer) {
 	if flags.count {
 		fmt.Fprintln(output, count, line)
 	} else if flags.duplicates && count > 1 {
@@ -97,7 +97,7 @@ func print(line string, flags flags, count int, output io.Writer) {
 	}
 }
 
-func realisation(input io.Reader, output io.Writer, flags flags) {
+func realisation(input io.Reader, output io.Writer, flags parameters) {
 	scanner := bufio.NewScanner(input)
 
 	var prevLine string
