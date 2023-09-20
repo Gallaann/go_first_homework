@@ -106,6 +106,31 @@ func print(line string, flags flags, count int, output io.Writer) {
 	}
 }
 
+func realisation(input io.Reader, output io.Writer, flags flags) {
+	scanner := bufio.NewScanner(input)
+
+	var prevLine string
+	if scanner.Scan() {
+		prevLine = scanner.Text()
+	}
+
+	count := 1
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		if equal(line, prevLine, flags) {
+			count++
+			continue
+		} else {
+			print(prevLine, flags, count, output)
+			prevLine = line
+			count = 1
+		}
+	}
+
+	print(prevLine, flags, count, output)
+}
+
 func main() {
 	flags := parseFlags()
 
@@ -138,13 +163,5 @@ func main() {
 		defer output.(*os.File).Close()
 	}
 
-	scanner := bufio.NewScanner(input)
-
-	// TODO realisation of uniq
-
-	for scanner.Scan() {
-		fmt.Fprintln(output, scanner.Text())
-	}
-
-	fmt.Println(flags, inputFile, outputFile)
+	realisation(input, output, flags)
 }
