@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
+	"io"
+	"os"
 	"strings"
 )
 
@@ -75,7 +78,35 @@ func skipChars(line string, numChars int) string {
 
 func main() {
 	flags := parseFlags()
+
+	var input io.Reader = os.Stdin
+	var output io.Writer = os.Stdout
+	var err error
+
 	inputFile, outputFile := parseArguments()
+	if inputFile != "" {
+		input, err = os.Open(inputFile)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error openning input file: %v\n", err)
+			os.Exit(1)
+		}
+		defer input.(*os.File).Close()
+	}
+
+	if outputFile != "" {
+		output, err = os.Create(outputFile)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error creating/writing to output file: %v\n", err)
+			os.Exit(1)
+		}
+		defer output.(*os.File).Close()
+	}
+
+	scanner := bufio.NewScanner(input)
+
+	for scanner.Scan() {
+		fmt.Fprintln(output, scanner.Text())
+	}
 
 	fmt.Println(flags, inputFile, outputFile)
 }
