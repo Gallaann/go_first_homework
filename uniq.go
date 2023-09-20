@@ -111,7 +111,6 @@ func realisation(input io.Reader, output io.Writer, flags parameters) {
 
 		if equal(line, prevLine, flags) {
 			count++
-			continue
 		} else {
 			print(prevLine, flags, count, output)
 			prevLine = line
