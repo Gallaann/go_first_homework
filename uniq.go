@@ -55,7 +55,7 @@ func checkFlags(flags flags) (bool, error) {
 	if flags.unique {
 		sum++
 	}
-	if sum != 1 {
+	if sum > 1 {
 		return false, errors.New("parameters [-c | -d | -u] are interchangeable, in parallel these parameters are meaningless")
 	}
 
