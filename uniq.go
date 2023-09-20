@@ -25,6 +25,20 @@ func parseFlags() flags {
 	flag.Parse()
 	return flags
 }
+
+func parseArguments() (string, string) {
+	args := flag.Args()
+
+	switch len(args) {
+	case 0:
+		return "", ""
+	case 1:
+		return args[0], ""
+	default:
+		return args[0], args[1]
+	}
+}
+
 func checkFlags(flags flags) bool {
 	sum := 0
 	if flags.count {
@@ -45,6 +59,7 @@ func checkFlags(flags flags) bool {
 
 func main() {
 	flags := parseFlags()
+	inputFile, outputFile := parseArguments()
 
 	fmt.Println(checkFlags(flags))
 }
