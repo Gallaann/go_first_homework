@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -43,7 +44,7 @@ func parseArguments() (string, string) {
 	}
 }
 
-func checkFlags(flags flags) bool {
+func checkFlags(flags flags) (bool, error) {
 	sum := 0
 	if flags.count {
 		sum++
@@ -55,10 +56,10 @@ func checkFlags(flags flags) bool {
 		sum++
 	}
 	if sum != 1 {
-		return false
+		return false, errors.New("parameters [-c | -d | -u] are interchangeable, in parallel these parameters are meaningless")
 	}
 
-	return true
+	return true, nil
 }
 
 func skipFields(line string, numFields int) string {
@@ -79,9 +80,15 @@ func skipChars(line string, numChars int) string {
 func main() {
 	flags := parseFlags()
 
+	var err error
+
+	if result, err := checkFlags(flags); !result {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+
 	var input io.Reader = os.Stdin
 	var output io.Writer = os.Stdout
-	var err error
 
 	inputFile, outputFile := parseArguments()
 	if inputFile != "" {
@@ -103,6 +110,10 @@ func main() {
 	}
 
 	scanner := bufio.NewScanner(input)
+
+	// TODO realisation of uniq
+
+	// TODO output data
 
 	for scanner.Scan() {
 		fmt.Fprintln(output, scanner.Text())
