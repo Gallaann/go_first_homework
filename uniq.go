@@ -77,21 +77,12 @@ func skipChars(line string, chars int) string {
 	return ""
 }
 
-func equal(lineOne, lineTwo string, flags flags) (result bool) {
-	result = true
+func equal(lineOne, lineTwo string, flags flags) bool {
 	if flags.ignoreCase {
-		lineOne = strings.ToLower(lineOne)
-		lineTwo = strings.ToLower(lineTwo)
+		return strings.EqualFold(skipChars(skipFields(lineOne, flags.fields), flags.chars), skipChars(skipFields(lineTwo, flags.fields), flags.chars))
 	}
-	if flags.fields > 0 {
-		lineOne = skipFields(lineOne, flags.fields)
-		lineTwo = skipFields(lineTwo, flags.fields)
-	}
-	if flags.chars > 0 {
-		lineOne = skipChars(lineOne, flags.chars)
-		lineTwo = skipChars(lineTwo, flags.chars)
-	}
-	return lineOne == lineTwo
+
+	return skipChars(skipFields(lineOne, flags.fields), flags.chars) == skipChars(skipFields(lineTwo, flags.fields), flags.chars)
 }
 
 func print(line string, flags flags, count int, output io.Writer) {
