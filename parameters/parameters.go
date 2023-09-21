@@ -1,6 +1,10 @@
 package parameters
 
-import "flag"
+import (
+	"flag"
+	"fmt"
+	"os"
+)
 
 type Parameters struct {
 	Count      bool
@@ -36,7 +40,7 @@ func ParseArguments() (string, string) {
 	}
 }
 
-func CheckFlags(flags Parameters) bool {
+func CheckFlags(flags Parameters) {
 	sum := 0
 	if flags.Count {
 		sum++
@@ -49,8 +53,7 @@ func CheckFlags(flags Parameters) bool {
 	}
 
 	if sum > 1 {
-		return false
+		fmt.Fprintln(os.Stderr, "error: parameters [-c | -d | -u] are interchangeable, in parallel these parameters are meaningless")
+		os.Exit(1)
 	}
-
-	return true
 }
