@@ -3,8 +3,8 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"os"
+	"strconv"
 	"strings"
 
 	"uniq/parameters"
@@ -33,58 +33,11 @@ func equal(lineOne, lineTwo string, flags parameters.Parameters) bool {
 	return skipChars(skipFields(lineOne, flags.Fields), flags.Chars) == skipChars(skipFields(lineTwo, flags.Fields), flags.Chars)
 }
 
-func print(line string, flags parameters.Parameters, count int, output io.Writer) {
-	if flags.Count {
-		fmt.Fprintln(output, count, line)
-	} else if flags.Duplicates && count > 1 {
-		fmt.Fprintln(output, line)
-	} else if flags.Unique && count == 1 {
-		fmt.Fprintln(output, line)
-	} else if !flags.Unique && !flags.Duplicates {
-		fmt.Fprintln(output, line)
-	}
-}
-
-func uniq(input io.Reader, output io.Writer, flags parameters.Parameters) {
-	scanner := bufio.NewScanner(input)
-
-	var prevLine string
-	if scanner.Scan() {
-		prevLine = scanner.Text()
-	}
-
-	count := 1
-	for scanner.Scan() {
-		line := scanner.Text()
-
-		if equal(line, prevLine, flags) {
-			count++
-		} else {
-			print(prevLine, flags, count, output)
-			prevLine = line
-			count = 1
-		}
-	}
-
-	print(prevLine, flags, count, output)
-}
-
-func main() {
-	flags := parameters.ParseFlags()
-
-	var err error
-
-	if !parameters.CheckFlags(flags) {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		os.Exit(1)
-	}
-
+func getLines(inputParameter string) (lines []string) {
 	input := os.Stdin
-	output := os.Stdout
 
-	inputFile, outputFile := parameters.ParseArguments()
-	if inputFile != "" {
-		input, err = os.Open(inputFile)
+	if inputParameter != "" {
+		input, err := os.Open(inputParameter)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error openning input file: %v\n", err)
 			os.Exit(1)
@@ -92,8 +45,59 @@ func main() {
 		defer input.Close()
 	}
 
-	if outputFile != "" {
-		output, err = os.Create(outputFile)
+	scanner := bufio.NewScanner(input)
+
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	return lines
+}
+
+func processLine(line string, count int, flags parameters.Parameters) string {
+	if flags.Count {
+		return strconv.Itoa(count) + " " + line
+	}
+	if flags.Duplicates && count > 1 {
+		return line
+	}
+	if flags.Unique && count == 1 {
+		return line
+	}
+	if !flags.Unique && !flags.Duplicates {
+		return line
+	}
+
+	return ""
+}
+
+func uniq(lines []string, flags parameters.Parameters) (output []string) {
+	prevLine := lines[0]
+	count := 1
+
+	for i := 1; i < len(lines); i++ {
+		line := lines[i]
+
+		if equal(line, prevLine, flags) {
+			count++
+		} else {
+			writeLine := processLine(prevLine, count, flags)
+			output = append(output, writeLine)
+			prevLine = line
+			count = 1
+		}
+	}
+
+	writeLine := processLine(prevLine, count, flags)
+	output = append(output, writeLine)
+	return output
+}
+
+func printLines(outputParameter string, lines []string) {
+	output := os.Stdout
+
+	if outputParameter != "" {
+		output, err := os.Create(outputParameter)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error creating/writing to output file: %v\n", err)
 			os.Exit(1)
@@ -101,5 +105,21 @@ func main() {
 		defer output.Close()
 	}
 
-	uniq(input, output, flags)
+	for _, line := range lines {
+		fmt.Fprintln(output, line)
+	}
+}
+
+func main() {
+	flags := parameters.ParseFlags()
+
+	parameters.CheckFlags(flags)
+
+	inputFile, outputFile := parameters.ParseArguments()
+
+	inputLines := getLines(inputFile)
+
+	outputLines := uniq(inputLines, flags)
+
+	printLines(outputFile, outputLines)
 }
