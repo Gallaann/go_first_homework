@@ -15,6 +15,7 @@ func skipFields(line string, fields int) string {
 	if len(fielders) > fields {
 		return strings.Join(fielders[fields:], " ")
 	}
+
 	return ""
 }
 
@@ -22,6 +23,7 @@ func skipChars(line string, chars int) string {
 	if len(line) > chars {
 		return line[chars:]
 	}
+
 	return ""
 }
 
