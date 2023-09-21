@@ -81,15 +81,13 @@ func uniq(lines []string, flags parameters.Parameters) (output []string) {
 		if equal(line, prevLine, flags) {
 			count++
 		} else {
-			writeLine := processLine(prevLine, count, flags)
-			output = append(output, writeLine)
+			output = append(output, processLine(prevLine, count, flags))
 			prevLine = line
 			count = 1
 		}
 	}
 
-	writeLine := processLine(prevLine, count, flags)
-	output = append(output, writeLine)
+	output = append(output, processLine(prevLine, count, flags))
 	return output
 }
 
