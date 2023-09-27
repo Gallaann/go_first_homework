@@ -6,23 +6,23 @@ import (
 	"os"
 )
 
-type Parameters struct {
+type CmdFlags struct {
 	Count      bool
 	Duplicates bool
 	Unique     bool
 	IgnoreCase bool
 	Fields     int
-	Chars      int
+	Symbols    int
 }
 
-func ParseFlags() Parameters {
-	var flags Parameters
+func ParseFlags() CmdFlags {
+	var flags CmdFlags
 	flag.BoolVar(&flags.Count, "c", false, "count repeated lines")
 	flag.BoolVar(&flags.Duplicates, "d", false, "output only duplicate lines")
 	flag.BoolVar(&flags.Unique, "u", false, "output only unique lines")
 	flag.BoolVar(&flags.IgnoreCase, "i", false, "ignore case when comparing lines")
 	flag.IntVar(&flags.Fields, "f", 0, "skip first num fields in each line")
-	flag.IntVar(&flags.Chars, "s", 0, "skip first num chars in each line")
+	flag.IntVar(&flags.Symbols, "s", 0, "skip first num symbols in each line")
 	flag.Parse()
 	return flags
 }
@@ -40,7 +40,7 @@ func ParseArguments() (string, string) {
 	}
 }
 
-func CheckFlags(flags Parameters) {
+func CheckFlags(flags CmdFlags) {
 	sum := 0
 	if flags.Count {
 		sum++

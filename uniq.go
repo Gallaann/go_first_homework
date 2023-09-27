@@ -10,29 +10,29 @@ import (
 	"uniq/parameters"
 )
 
-func skipFields(line string, fields int) string {
-	fielders := strings.Fields(line)
-	if len(fielders) > fields {
-		return strings.Join(fielders[fields:], " ")
+func skipNFields(line string, fieldsNum int) string {
+	fields := strings.Fields(line)
+	if len(fields) > fieldsNum {
+		return strings.Join(fields[fieldsNum:], " ")
 	}
 
 	return ""
 }
 
-func skipChars(line string, chars int) string {
-	if len(line) > chars {
-		return line[chars:]
+func skipNSymbols(line string, symbolsNum int) string {
+	if len(line) > symbolsNum {
+		return line[symbolsNum:]
 	}
 
 	return ""
 }
 
-func equal(lineOne, lineTwo string, flags parameters.Parameters) bool {
+func areLinesEqual(lineOne, lineTwo string, flags parameters.CmdFlags) bool {
 	if flags.IgnoreCase {
-		return strings.EqualFold(skipChars(skipFields(lineOne, flags.Fields), flags.Chars), skipChars(skipFields(lineTwo, flags.Fields), flags.Chars))
+		return strings.EqualFold(skipNSymbols(skipNFields(lineOne, flags.Fields), flags.Symbols), skipNSymbols(skipNFields(lineTwo, flags.Fields), flags.Symbols))
 	}
 
-	return skipChars(skipFields(lineOne, flags.Fields), flags.Chars) == skipChars(skipFields(lineTwo, flags.Fields), flags.Chars)
+	return skipNSymbols(skipNFields(lineOne, flags.Fields), flags.Symbols) == skipNSymbols(skipNFields(lineTwo, flags.Fields), flags.Symbols)
 }
 
 func getLines(inputParameter string) (lines []string) {
@@ -57,7 +57,7 @@ func getLines(inputParameter string) (lines []string) {
 	return lines
 }
 
-func processLine(line string, count int, flags parameters.Parameters) string {
+func processLine(line string, count int, flags parameters.CmdFlags) string {
 	if flags.Count {
 		return fmt.Sprintf("%s %s", strconv.Itoa(count), line)
 	}
@@ -74,7 +74,7 @@ func processLine(line string, count int, flags parameters.Parameters) string {
 	return ""
 }
 
-func uniq(lines []string, flags parameters.Parameters) (output []string) {
+func uniq(lines []string, flags parameters.CmdFlags) (output []string) {
 	if len(lines) == 0 {
 		return
 	}
@@ -85,7 +85,7 @@ func uniq(lines []string, flags parameters.Parameters) (output []string) {
 	for i := 1; i < len(lines); i++ {
 		line := lines[i]
 
-		if equal(line, prevLine, flags) {
+		if areLinesEqual(line, prevLine, flags) {
 			count++
 		} else {
 			output = append(output, processLine(prevLine, count, flags))
