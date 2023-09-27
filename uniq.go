@@ -59,7 +59,7 @@ func getLines(inputParameter string) (lines []string) {
 
 func processLine(line string, count int, flags parameters.Parameters) string {
 	if flags.Count {
-		return strconv.Itoa(count) + " " + line
+		return fmt.Sprintf("%s %s", strconv.Itoa(count), line)
 	}
 	if flags.Duplicates && count > 1 {
 		return line
