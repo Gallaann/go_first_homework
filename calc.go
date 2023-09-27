@@ -8,32 +8,34 @@ import (
 	"calc/stack"
 )
 
+var kPrecedence = map[string]int{"+": 1, "-": 1, "*": 2, "/": 2, "~": 3}
+
 func extractExpressionTokens(expression string) (tokens []string) {
-	var currentItem string
+	var currentToken string
 
 	for i, char := range expression {
 		switch char {
 		case ' ', '\t', '\n', '\r', '\v', '\f': // whitespaces
 			continue
 		case '(', ')', '+', '-', '*', '/': // operations
-			if currentItem != "" {
-				tokens = append(tokens, currentItem)
-				currentItem = ""
+			if currentToken != "" {
+				tokens = append(tokens, currentToken)
+				currentToken = ""
 			}
 
-			// Handle unary minus
 			if char == '-' && (i == 0 || expression[i-1] == '(') {
-				currentItem += "-"
-			} else {
-				tokens = append(tokens, string(char))
+				tokens = append(tokens, "~")
+				continue
 			}
+
+			tokens = append(tokens, string(char))
 		default:
-			currentItem += string(char)
+			currentToken += string(char)
 		}
 	}
 
-	if currentItem != "" {
-		tokens = append(tokens, currentItem)
+	if currentToken != "" {
+		tokens = append(tokens, currentToken)
 	}
 
 	return tokens
@@ -42,24 +44,16 @@ func extractExpressionTokens(expression string) (tokens []string) {
 func convertInfixToPostfix(tokens []string) (postfixExpression []string) {
 	var operationsStack stack.Stack
 
-	precedence := map[string]int{"+": 1, "-": 1, "*": 2, "/": 2}
-
 	for _, token := range tokens {
 		switch token {
-		case "+", "-":
-			if operationsStack.IsEmpty() || operationsStack.Peek() == "(" {
-				precedence["-"] = 3 // Unary minus has higher precedence
-			} else {
-				precedence["-"] = 1
-			}
-
-			for !operationsStack.IsEmpty() && precedence[operationsStack.Peek()] >= precedence[token] {
+		case "+", "-", "~":
+			for !operationsStack.IsEmpty() && kPrecedence[operationsStack.Peek()] >= kPrecedence[token] {
 				postfixExpression = append(postfixExpression, operationsStack.Pop())
 			}
 
 			operationsStack.Push(token)
 		case "*", "/":
-			for !operationsStack.IsEmpty() && precedence[operationsStack.Peek()] >= precedence[token] {
+			for !operationsStack.IsEmpty() && kPrecedence[operationsStack.Peek()] >= kPrecedence[token] {
 				postfixExpression = append(postfixExpression, operationsStack.Pop())
 			}
 
