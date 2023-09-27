@@ -37,9 +37,10 @@ func equal(lineOne, lineTwo string, flags parameters.Parameters) bool {
 
 func getLines(inputParameter string) (lines []string) {
 	input := os.Stdin
+	var err error
 
 	if inputParameter != "" {
-		input, err := os.Open(inputParameter)
+		input, err = os.Open(inputParameter)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error openning input file: %v\n", err)
 			os.Exit(1)
@@ -74,6 +75,10 @@ func processLine(line string, count int, flags parameters.Parameters) string {
 }
 
 func uniq(lines []string, flags parameters.Parameters) (output []string) {
+	if len(lines) == 0 {
+		return
+	}
+
 	prevLine := lines[0]
 	count := 1
 
@@ -95,9 +100,10 @@ func uniq(lines []string, flags parameters.Parameters) (output []string) {
 
 func printLines(outputParameter string, lines []string) {
 	output := os.Stdout
+	var err error
 
 	if outputParameter != "" {
-		output, err := os.Create(outputParameter)
+		output, err = os.Create(outputParameter)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error creating/writing to output file: %v\n", err)
 			os.Exit(1)
