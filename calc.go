@@ -8,7 +8,7 @@ import (
 	"calc/stack"
 )
 
-func getItems(expression string) (items []string) {
+func extractExpressionTokens(expression string) (tokens []string) {
 	var currentItem string
 
 	for i, char := range expression {
@@ -17,7 +17,7 @@ func getItems(expression string) (items []string) {
 			continue
 		case '(', ')', '+', '-', '*', '/': // operations
 			if currentItem != "" {
-				items = append(items, currentItem)
+				tokens = append(tokens, currentItem)
 				currentItem = ""
 			}
 
@@ -25,7 +25,7 @@ func getItems(expression string) (items []string) {
 			if char == '-' && (i == 0 || expression[i-1] == '(') {
 				currentItem += "-"
 			} else {
-				items = append(items, string(char))
+				tokens = append(tokens, string(char))
 			}
 		default:
 			currentItem += string(char)
@@ -33,19 +33,19 @@ func getItems(expression string) (items []string) {
 	}
 
 	if currentItem != "" {
-		items = append(items, currentItem)
+		tokens = append(tokens, currentItem)
 	}
 
-	return items
+	return tokens
 }
 
-func infixToPostfix(items []string) (postfixExpression []string) {
+func convertInfixToPostfix(tokens []string) (postfixExpression []string) {
 	var operationsStack stack.Stack
 
 	precedence := map[string]int{"+": 1, "-": 1, "*": 2, "/": 2}
 
-	for _, item := range items {
-		switch item {
+	for _, token := range tokens {
+		switch token {
 		case "+", "-":
 			if operationsStack.IsEmpty() || operationsStack.Peek() == "(" {
 				precedence["-"] = 3 // Unary minus has higher precedence
@@ -53,19 +53,19 @@ func infixToPostfix(items []string) (postfixExpression []string) {
 				precedence["-"] = 1
 			}
 
-			for !operationsStack.IsEmpty() && precedence[operationsStack.Peek()] >= precedence[item] {
+			for !operationsStack.IsEmpty() && precedence[operationsStack.Peek()] >= precedence[token] {
 				postfixExpression = append(postfixExpression, operationsStack.Pop())
 			}
 
-			operationsStack.Push(item)
+			operationsStack.Push(token)
 		case "*", "/":
-			for !operationsStack.IsEmpty() && precedence[operationsStack.Peek()] >= precedence[item] {
+			for !operationsStack.IsEmpty() && precedence[operationsStack.Peek()] >= precedence[token] {
 				postfixExpression = append(postfixExpression, operationsStack.Pop())
 			}
 
-			operationsStack.Push(item)
+			operationsStack.Push(token)
 		case "(":
-			operationsStack.Push(item)
+			operationsStack.Push(token)
 		case ")":
 			for !operationsStack.IsEmpty() && operationsStack.Peek() != "(" {
 				postfixExpression = append(postfixExpression, operationsStack.Pop())
@@ -77,7 +77,7 @@ func infixToPostfix(items []string) (postfixExpression []string) {
 
 			operationsStack.Pop()
 		default:
-			postfixExpression = append(postfixExpression, item)
+			postfixExpression = append(postfixExpression, token)
 		}
 	}
 
@@ -92,11 +92,11 @@ func infixToPostfix(items []string) (postfixExpression []string) {
 	return postfixExpression
 }
 
-func calculatePostfix(postfixExpression []string) (float64, error) {
+func evaluatePostfixExpression(postfixExpression []string) (float64, error) {
 	var exitStack []float64
 
-	for _, item := range postfixExpression {
-		switch item {
+	for _, token := range postfixExpression {
+		switch token {
 		case "+", "-", "*", "/":
 			if len(exitStack) < 2 {
 				return 0, fmt.Errorf("invalid expression")
@@ -105,7 +105,7 @@ func calculatePostfix(postfixExpression []string) (float64, error) {
 			b, a := exitStack[len(exitStack)-1], exitStack[len(exitStack)-2]
 			exitStack = exitStack[:len(exitStack)-2]
 
-			switch item {
+			switch token {
 			case "+":
 				exitStack = append(exitStack, a+b)
 			case "-":
@@ -120,10 +120,10 @@ func calculatePostfix(postfixExpression []string) (float64, error) {
 				exitStack = append(exitStack, a/b)
 			}
 		default:
-			num, err := strconv.ParseFloat(item, 64)
+			num, err := strconv.ParseFloat(token, 64)
 
 			if err != nil {
-				return 0, fmt.Errorf("invalid item: %s", item)
+				return 0, fmt.Errorf("invalid token: %s", token)
 			}
 
 			exitStack = append(exitStack, num)
@@ -138,9 +138,9 @@ func calculatePostfix(postfixExpression []string) (float64, error) {
 }
 
 func calc(expression string) (float64, error) {
-	items := getItems(expression)
-	postfix := infixToPostfix(items)
-	result, err := calculatePostfix(postfix)
+	tokens := extractExpressionTokens(expression)
+	postfixExpression := convertInfixToPostfix(tokens)
+	result, err := evaluatePostfixExpression(postfixExpression)
 
 	if err != nil {
 		return 0, err
