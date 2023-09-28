@@ -52,7 +52,12 @@ func printLines(outputParameter string, lines []string) {
 func main() {
 	flags := parameters.ParseFlags()
 
-	parameters.CheckFlags(flags)
+	err := parameters.CheckFlags(flags)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
 
 	inputFile, outputFile := parameters.ParseArguments()
 

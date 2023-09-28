@@ -504,17 +504,104 @@ func Test_ProcessLine(t *testing.T) {
 		count int
 		flags parameters.CmdFlags
 	}
+	type LineResult struct {
+		Line         string
+		MatchesFlags bool
+	}
 	tests := []struct {
 		name string
 		args args
-		want string
-	}{}
+		want LineResult
+	}{
+		{
+			name: "Test count flag",
+			args: args{
+				line:  "Music",
+				count: 3,
+				flags: parameters.CmdFlags{
+					Count: true,
+				},
+			},
+			want: LineResult{
+				"3 Music",
+				true,
+			},
+		},
+		{
+			name: "Test duplicates flag",
+			args: args{
+				line:  "Music",
+				count: 2,
+				flags: parameters.CmdFlags{
+					Duplicates: true,
+				},
+			},
+			want: LineResult{
+				"Music",
+				true,
+			},
+		},
+		{
+			name: "Test duplicates flag, 1 matching line",
+			args: args{
+				line:  "Music",
+				count: 1,
+				flags: parameters.CmdFlags{
+					Duplicates: true,
+				},
+			},
+			want: LineResult{
+				"Music",
+				false,
+			},
+		},
+		{
+			name: "Test unique flag, 1 matching line",
+			args: args{
+				line:  "Music",
+				count: 1,
+				flags: parameters.CmdFlags{
+					Unique: true,
+				},
+			},
+			want: LineResult{
+				"Music",
+				true,
+			},
+		},
+		{
+			name: "Test unique flag, more then 1 matching line",
+			args: args{
+				line:  "Music",
+				count: 3,
+				flags: parameters.CmdFlags{
+					Unique: true,
+				},
+			},
+			want: LineResult{
+				"Music",
+				false,
+			},
+		},
+		{
+			name: "Test no flag",
+			args: args{
+				line:  "Music",
+				count: 2,
+				flags: parameters.CmdFlags{},
+			},
+			want: LineResult{
+				"Music",
+				true,
+			},
+		},
+	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got := ProcessLine(tt.args.line, tt.args.count, tt.args.flags)
-			require.Equal(t, tt.want, got, "ProcessLine() did not return the expected result")
+			require.Equal(t, tt.want.Line, got.Line, "ProcessLine() did not return the expected result")
 		})
 	}
 }
