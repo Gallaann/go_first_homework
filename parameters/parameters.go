@@ -1,9 +1,8 @@
 package parameters
 
 import (
+	"errors"
 	"flag"
-	"fmt"
-	"os"
 )
 
 type CmdFlags struct {
@@ -40,7 +39,7 @@ func ParseArguments() (string, string) {
 	}
 }
 
-func CheckFlags(flags CmdFlags) {
+func CheckFlags(flags CmdFlags) error {
 	sum := 0
 	if flags.Count {
 		sum++
@@ -53,7 +52,8 @@ func CheckFlags(flags CmdFlags) {
 	}
 
 	if sum > 1 {
-		fmt.Fprintln(os.Stderr, "error: parameters [-c | -d | -u] are interchangeable, in parallel these parameters are meaningless")
-		os.Exit(1)
+		return errors.New("error: parameters [-c | -d | -u] are interchangeable, in parallel these parameters are meaningless")
 	}
+
+	return nil
 }

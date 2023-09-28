@@ -8,6 +8,11 @@ import (
 	"uniq/parameters"
 )
 
+type LineResult struct {
+	Line         string
+	MatchesFlags bool
+}
+
 func SkipNFields(line string, fieldsNum int) string {
 	fields := strings.Fields(line)
 	if len(fields) > fieldsNum && fieldsNum >= 0 {
@@ -18,7 +23,7 @@ func SkipNFields(line string, fieldsNum int) string {
 }
 
 func SkipNSymbols(line string, symbolsNum int) string {
-	if len(line) > symbolsNum {
+	if len(line) > symbolsNum && symbolsNum >= 0 {
 		return line[symbolsNum:]
 	}
 
@@ -33,28 +38,37 @@ func AreLinesEqual(lineOne, lineTwo string, flags parameters.CmdFlags) bool {
 	return SkipNSymbols(SkipNFields(lineOne, flags.Fields), flags.Symbols) == SkipNSymbols(SkipNFields(lineTwo, flags.Fields), flags.Symbols)
 }
 
-func ProcessLine(line string, count int, flags parameters.CmdFlags) string {
+func ProcessLine(line string, count int, flags parameters.CmdFlags) (result LineResult) {
+	result.Line = line
+
 	if flags.Count {
-		return fmt.Sprintf("%s %s", strconv.Itoa(count), line)
+		result.Line = fmt.Sprintf("%s %s", strconv.Itoa(count), line)
+		result.MatchesFlags = true
 	}
 	if flags.Duplicates && count > 1 {
-		return line
+		result.MatchesFlags = true
 	}
 	if flags.Unique && count == 1 {
-		return line
+		result.MatchesFlags = true
 	}
 	if !flags.Unique && !flags.Duplicates && !flags.Count {
-		return line
+		result.MatchesFlags = true
 	}
 
-	return ""
+	return result
 }
 
-func UtilityUniq(lines []string, flags parameters.CmdFlags) (output []string) {
-	parameters.CheckFlags(flags)
+func UtilityUniq(lines []string, flags parameters.CmdFlags) ([]string, error) {
+	err := parameters.CheckFlags(flags)
+
+	if err != nil {
+		return nil, err
+	}
+
+	output := make([]string, 0)
 
 	if len(lines) == 0 {
-		return output
+		return output, nil
 	}
 
 	prevLine := lines[0]
@@ -65,20 +79,22 @@ func UtilityUniq(lines []string, flags parameters.CmdFlags) (output []string) {
 
 		if AreLinesEqual(line, prevLine, flags) {
 			count++
-		} else {
-			outputLine := ProcessLine(prevLine, count, flags)
-			if outputLine != "" {
-				output = append(output, outputLine)
-			}
-			prevLine = line
-			count = 1
+			continue
 		}
+
+		result := ProcessLine(prevLine, count, flags)
+		if result.MatchesFlags {
+			output = append(output, result.Line)
+		}
+
+		prevLine = line
+		count = 1
 	}
 
-	outputLine := ProcessLine(prevLine, count, flags)
-	if outputLine != "" {
-		output = append(output, outputLine)
+	result := ProcessLine(prevLine, count, flags)
+	if result.MatchesFlags {
+		output = append(output, result.Line)
 	}
 
-	return output
+	return output, err
 }
