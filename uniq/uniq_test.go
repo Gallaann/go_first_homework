@@ -8,6 +8,7 @@ import (
 )
 
 func TestUtilityUniq(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		input       []string
@@ -402,7 +403,9 @@ func TestUtilityUniq(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := UtilityUniq(tt.input, tt.flags)
 			if tt.shouldError {
 				require.Error(t, err, "Expected an error, but got nil")

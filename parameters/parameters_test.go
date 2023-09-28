@@ -6,6 +6,7 @@ import (
 )
 
 func TestCheckFlags(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		flags       CmdFlags
@@ -75,7 +76,9 @@ func TestCheckFlags(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			err := CheckFlags(tt.flags)
 			if tt.shouldError {
 				require.Error(t, err, "Expected an error, but got nil")
