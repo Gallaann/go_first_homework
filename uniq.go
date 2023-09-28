@@ -58,7 +58,12 @@ func main() {
 
 	inputLines := getLines(inputFile)
 
-	outputLines := uniq.UtilityUniq(inputLines, flags)
+	outputLines, err := uniq.UtilityUniq(inputLines, flags)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
 
 	printLines(outputFile, outputLines)
 }
