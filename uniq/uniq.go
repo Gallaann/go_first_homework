@@ -1,7 +1,9 @@
 package uniq
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
 
@@ -38,8 +40,8 @@ func AreLinesEqual(lineOne, lineTwo string, flags parameters.CmdFlags) bool {
 	return SkipNSymbols(SkipNFields(lineOne, flags.Fields), flags.Symbols) == SkipNSymbols(SkipNFields(lineTwo, flags.Fields), flags.Symbols)
 }
 
-func ProcessLine(line string, count int, flags parameters.CmdFlags) (result LineResult) {
-	result.Line = line
+func ProcessLine(line string, count int, flags parameters.CmdFlags) LineResult {
+	result := LineResult{Line: line}
 
 	if flags.Count {
 		result.Line = fmt.Sprintf("%s %s", strconv.Itoa(count), line)
@@ -56,6 +58,29 @@ func ProcessLine(line string, count int, flags parameters.CmdFlags) (result Line
 	}
 
 	return result
+}
+
+func GetLines(input io.Reader) []string {
+	lines := make([]string, 0)
+	scanner := bufio.NewScanner(input)
+
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	return lines
+}
+
+func PrintLines(output io.Writer, lines []string) error {
+	for _, line := range lines {
+		_, err := fmt.Fprintln(output, line)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func UtilityUniq(lines []string, flags parameters.CmdFlags) ([]string, error) {

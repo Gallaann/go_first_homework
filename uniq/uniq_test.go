@@ -1,7 +1,9 @@
 package uniq
 
 import (
+	"bytes"
 	"github.com/stretchr/testify/require"
+	"io"
 	"testing"
 
 	"uniq/parameters"
@@ -729,6 +731,105 @@ func Test_SkipNSymbols(t *testing.T) {
 			t.Parallel()
 			got := SkipNSymbols(tt.args.line, tt.args.symbolsNum)
 			require.Equal(t, tt.want, got, "SkipNSymbols() did not return the expected result")
+		})
+	}
+}
+
+func TestGetLines(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		input io.Reader
+	}
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{
+			name: "Empty input",
+			args: args{input: bytes.NewBufferString("")},
+			want: []string{},
+		},
+		{
+			name: "Empty lines input",
+			args: args{input: bytes.NewBufferString("\n\n\n\n")},
+			want: []string{
+				"",
+				"",
+				"",
+				"",
+			},
+		},
+		{
+			name: "Typical input",
+			args: args{input: bytes.NewBufferString(
+				"I love music.\n\nI love music of Kartik.",
+			)},
+			want: []string{
+				"I love music.",
+				"",
+				"I love music of Kartik.",
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := GetLines(tt.args.input)
+			require.Equal(t, tt.want, got, "GetLines() did not return the expected result")
+		})
+	}
+}
+
+func TestPrintLines(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		lines []string
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantOutput string
+		wantErr    bool
+	}{
+		{
+			name: "Ordinary output",
+			args: args{lines: []string{
+				"I love music.",
+				"",
+				"I love music of Kartik.",
+			}},
+			wantOutput: "I love music.\n\nI love music of Kartik.\n",
+		},
+		{
+			name:       "Empty lines",
+			args:       args{lines: []string{}},
+			wantOutput: "",
+		},
+		{
+			name: "New lines",
+			args: args{lines: []string{
+				"",
+				"",
+				"",
+			}},
+			wantOutput: "\n\n\n",
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			output := &bytes.Buffer{}
+			err := PrintLines(output, tt.args.lines)
+
+			if tt.wantErr {
+				require.Error(t, err, "Expected an error, but got nil")
+			} else {
+				gotOutput := output.String()
+				require.Equal(t, tt.wantOutput, gotOutput, "PrintLines() did not return the expected result")
+			}
 		})
 	}
 }

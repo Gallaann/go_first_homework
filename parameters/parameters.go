@@ -3,6 +3,8 @@ package parameters
 import (
 	"errors"
 	"flag"
+	"io"
+	"os"
 )
 
 type CmdFlags struct {
@@ -26,16 +28,32 @@ func ParseFlags() CmdFlags {
 	return flags
 }
 
-func ParseArguments() (string, string) {
+func ParseArguments() (io.Reader, io.Writer, error) {
 	args := flag.Args()
 
 	switch len(args) {
 	case 0:
-		return "", ""
+		return os.Stdin, os.Stdout, nil
 	case 1:
-		return args[0], ""
+		{
+			return nil, os.Stdout, nil
+		}
 	default:
-		return args[0], args[1]
+		{
+			input, err := os.Open(args[0])
+			if err != nil {
+				return nil, nil, err
+			}
+			defer input.Close()
+
+			output, err := os.Create(args[1])
+			if err != nil {
+				return nil, nil, err
+			}
+			defer output.Close()
+
+			return input, output, nil
+		}
 	}
 }
 
