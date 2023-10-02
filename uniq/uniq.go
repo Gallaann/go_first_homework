@@ -33,11 +33,17 @@ func SkipNSymbols(line string, symbolsNum int) string {
 }
 
 func AreLinesEqual(lineOne, lineTwo string, flags parameters.CmdFlags) bool {
+	skippedFieldsLineOne := SkipNFields(lineOne, flags.Fields)
+	skippedFieldsLineTwo := SkipNFields(lineTwo, flags.Fields)
+
+	skippedSymbolsLineOne := SkipNSymbols(skippedFieldsLineOne, flags.Symbols)
+	skippedSymbolsLineTwo := SkipNSymbols(skippedFieldsLineTwo, flags.Symbols)
+
 	if flags.IgnoreCase {
-		return strings.EqualFold(SkipNSymbols(SkipNFields(lineOne, flags.Fields), flags.Symbols), SkipNSymbols(SkipNFields(lineTwo, flags.Fields), flags.Symbols))
+		return strings.EqualFold(skippedSymbolsLineOne, skippedSymbolsLineTwo)
 	}
 
-	return SkipNSymbols(SkipNFields(lineOne, flags.Fields), flags.Symbols) == SkipNSymbols(SkipNFields(lineTwo, flags.Fields), flags.Symbols)
+	return skippedSymbolsLineOne == skippedSymbolsLineTwo
 }
 
 func ProcessLine(line string, count int, flags parameters.CmdFlags) LineResult {
