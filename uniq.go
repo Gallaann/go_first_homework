@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
-
 	"uniq/parameters"
 	"uniq/uniq"
 )
@@ -14,15 +12,15 @@ func main() {
 	err := parameters.CheckFlags(flags)
 
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		fmt.Printf("Error: %v\n", err)
+		return
 	}
 
 	inputStream, outputStream, err := parameters.ParseArguments()
 
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		fmt.Printf("Error: %v\n", err)
+		return
 	}
 
 	inputLines := uniq.GetLines(inputStream)
@@ -30,14 +28,14 @@ func main() {
 	outputLines, err := uniq.UtilityUniq(inputLines, flags)
 
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		fmt.Printf("Error: %v\n", err)
+		return
 	}
 
 	err = uniq.PrintLines(outputStream, outputLines)
 
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		fmt.Printf("Error: %v\n", err)
+		return
 	}
 }
