@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"sort"
 	"sync"
 )
@@ -29,7 +30,7 @@ func RunPipeline(cmds ...cmd) {
 func SelectUsers(in, out chan interface{}) {
 	var waitGroup sync.WaitGroup
 	processedUsers := make(map[string]bool)
-	var mutex sync.Mutex
+	var mutex sync.RWMutex
 
 	for email := range in {
 		waitGroup.Add(1)
@@ -37,16 +38,14 @@ func SelectUsers(in, out chan interface{}) {
 			defer waitGroup.Done()
 			user := GetUser(email)
 
-			if usersAliases[user.Email] != "" {
-				user = GetUser(usersAliases[user.Email])
-			}
-
-			mutex.Lock()
-			if processedUsers[user.Email] {
-				mutex.Unlock()
+			mutex.RLock()
+			processed, ok := processedUsers[user.Email]
+			mutex.RUnlock()
+			if ok && processed {
 				return
 			}
 
+			mutex.Lock()
 			processedUsers[user.Email] = true
 			mutex.Unlock()
 
@@ -97,13 +96,18 @@ func CheckSpam(in, out chan interface{}) {
 
 		go func(message MsgID) {
 			defer waitGroup.Done()
-			hasSpam, _ := HasSpam(message)
+			defer func() { <-semaphore }()
+
+			hasSpam, err := HasSpam(message)
+			if err != nil {
+				log.Printf("Error checking spam for message %d: %v", message, err)
+				return
+			}
+
 			out <- MsgData{
 				ID:      message,
 				HasSpam: hasSpam,
 			}
-
-			<-semaphore
 		}(message.(MsgID))
 	}
 
