@@ -34,14 +34,22 @@ func SelectUsers(in, out chan interface{}) {
 
 	for email := range in {
 		waitGroup.Add(1)
-		go func(email string) {
+		go func(email interface{}) {
 			defer waitGroup.Done()
-			user := GetUser(email)
+
+			emailString, ok := email.(string)
+			if !ok {
+				log.Println("Value is not a string")
+				return
+			}
+
+			user := GetUser(emailString)
 
 			mutex.RLock()
-			processed, ok := processedUsers[user.Email]
+			_, ok = processedUsers[user.Email]
 			mutex.RUnlock()
-			if ok && processed {
+
+			if ok {
 				return
 			}
 
@@ -50,7 +58,7 @@ func SelectUsers(in, out chan interface{}) {
 			mutex.Unlock()
 
 			out <- user
-		}(email.(string))
+		}(email)
 	}
 
 	waitGroup.Wait()
@@ -68,8 +76,15 @@ func SelectMessages(in, out chan interface{}) {
 	var waitGroup sync.WaitGroup
 	usersBatch := make([]User, 0, GetMessagesMaxUsersBatch)
 
-	for user := range in {
-		usersBatch = append(usersBatch, user.(User))
+	for input := range in {
+		user, ok := input.(User)
+
+		if !ok {
+			log.Println("Value is not a User")
+			continue
+		}
+
+		usersBatch = append(usersBatch, user)
 
 		if len(usersBatch) == GetMessagesMaxUsersBatch {
 			waitGroup.Add(1)
